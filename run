@@ -1,0 +1,52 @@
+#!/bin/sh
+
+NETWORK="local"
+
+setup() {
+    clean
+    npm install
+    npm run generate:env
+    npx hardhat compile
+}
+
+clean() {
+    rm -rf artifacts cache typechain-types
+}
+
+node() {
+    npx hardhat node
+}
+
+oracle() {
+    npm run oracle:dev
+}
+
+balance() {
+    npx hardhat run scripts/checkBalance.ts --network $NETWORK
+}
+
+deploy() {
+    npx hardhat run scripts/deploy.ts --network $NETWORK
+}
+
+ex_usd() {
+    npx hardhat run scripts/exchangeForEth.ts --network $NETWORK
+    sleep 3
+}
+
+ex_eth() {
+    npx hardhat run scripts/exchangeForUSD.ts --network $NETWORK
+    sleep 3
+}
+
+if [ "$#" -ne 1 ]; then
+    echo "./run [TASK] [TASK]\n"
+    echo "TASKS:"
+    for i in $(compgen -A function); do
+        echo '\t' $i
+    done
+fi
+
+for i in "$@"; do
+    "$i"
+done
